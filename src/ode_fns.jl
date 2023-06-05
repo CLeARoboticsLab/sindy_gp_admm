@@ -24,7 +24,6 @@ end
 export ode_sine 
 function ode_sine(dx, x, p, t)
     dx[1] = -1/4 * sin(x[1])  
-    dx[2] = -1/2 * x[2] 
     return dx 
 end 
 

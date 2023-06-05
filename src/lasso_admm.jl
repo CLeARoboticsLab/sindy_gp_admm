@@ -2,7 +2,6 @@
 # objective 
 
 export objective 
-
 function objective(A, b, λ, x, z) 
 
     p = ( 1/2 * sum( ( A*x - b ).^2 ) + λ*norm(z,1) ) 
@@ -15,7 +14,6 @@ end
 # shrinkage 
 
 export shrinkage 
-
 function shrinkage(x, κ) 
 
     z = 0*x ; 
@@ -31,7 +29,6 @@ end
 # cache factorization 
 
 export factor 
-
 function factor(A, ρ)
 
     m, n =  size(A) ; 
@@ -51,8 +48,8 @@ end
 # plot everything! 
 
 using Plots 
-export plot_admm 
 
+export plot_admm 
 function plot_admm( hist ) 
 
     K = length(hist.objval) 
@@ -86,7 +83,6 @@ end
 # LASSO ADMM! 
 
 export lasso_admm_boyd 
-
 function lasso_admm_boyd(A, b, λ, ρ, α, hist) 
 # ----------------------- #
 # lasso  Solve lasso problem via ADMM
@@ -182,8 +178,8 @@ end
 # LASSO ADMM! 
 
 using  Optim 
-export lasso_admm_opt
 
+export lasso_admm_opt
 function lasso_admm_opt( f, g, n, λ, ρ, α, hist ) 
 
     # define constants 
@@ -254,8 +250,8 @@ end
 # LASSO ADMM! 
 
 using  Optim 
-export lasso_admm_test
 
+export lasso_admm_test
 function lasso_admm_test( f, g, n, λ, ρ, α, hist ) 
 
     # define constants 
@@ -321,14 +317,12 @@ function lasso_admm_test( f, g, n, λ, ρ, α, hist )
 end 
 
 
-    
-
 ## ============================================ ##
 # LASSO ADMM! 
 
 using  Optim 
-export lasso_admm_hp_opt
 
+export lasso_admm_hp_opt
 function lasso_admm_hp_opt( f, g, n, λ, ρ, α, hist ) 
 
     # define constants 
