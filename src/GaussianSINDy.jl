@@ -102,3 +102,69 @@ end
 
 end 
 
+
+
+## ============================================ ##
+
+using Infiltrator
+
+export sindyc_gp_admm 
+function sindyc_gp_admm( x, u, dx_fd, λ, hist_hp_opt )
+
+    # ----------------------- #
+    # SINDy_c  
+
+    n_vars = size( [x u], 2 )
+    x_vars = size(x, 2) 
+    u_vars = size(u, 2) 
+    poly_order = x_vars 
+
+    # construct data library 
+    Θx = pool_data( [x u], n_vars, poly_order) 
+
+    # first cut - SINDy 
+    Ξ = sparsify_dynamics( Θx, dx_fd, λ, x_vars ) 
+
+    # ----------------------- #
+    # objective function 
+    z_soln = 0 * Ξ 
+
+    # ADMM stuff 
+    ρ = 1.0 ; α = 1.0 
+
+    # ----------------------- #
+    # loop with state j
+
+    for j = 1 : x_vars 
+
+        # initial loss function vars 
+        ξ  = 0 * Ξ[:,j] 
+        dx = dx_fd[:,j] 
+
+        @infiltrate
+
+        # assign for f_hp_opt 
+        f_hp(ξ, σ_f, l, σ_n) = f_obj( σ_f, l, σ_n, dx, ξ, Θx )
+
+        # l1 norm 
+        g(z) = λ * sum(abs.(z)) 
+
+        # ----------------------- #
+        # admm!!! 
+
+        n = length(ξ)
+        x_hp_opt, z_hp_opt, hist_hp_opt, k  = lasso_admm_hp_opt( f_hp, g, n, λ, ρ, α, hist_hp_opt ) 
+
+        # ----------------------- #
+        # output solution 
+
+        z_soln[:,j] = z_hp_opt 
+
+    end 
+
+    return z_soln, hist_hp_opt 
+
+end 
+
+
+

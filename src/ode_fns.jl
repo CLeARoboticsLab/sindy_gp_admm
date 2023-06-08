@@ -15,7 +15,7 @@ end
 export predator_prey 
 function predator_prey(dx, (x1,x2), (a,b,c,d), t; u = 2sin(t) + 2sin(t/10))
 
-    dx[1] = a*x1 - b*x1*x2 + u^2 * 0 
+    dx[1] = a*x1 - b*x1*x2 + u^2 
     dx[2] = -c*x2 + d*x1*x2  
 
     return dx 
@@ -92,13 +92,15 @@ end
 # generate predicts / validation data 
 
 export validate_data 
-function validate_data(t_test, x_test, dx_fn)
+function validate_data(t_test, x_test, u_test, dx_fn)
 
 
-    n_vars = size(x_test,2) 
-    x0     = [ x_test[1] ] 
-    if n_vars > 1 
+    n_vars = size([x_test u_test],2) 
+    x_vars = size(x_test, 2) 
+    x0     = [ x_test[1], u_test[1] ] 
+    if x_vars > 1 
         x0 = x_test[1,:] 
+        push!(x0, u_test[1])
     end 
 
     tspan = (t_test[1], t_test[end])
@@ -215,10 +217,10 @@ end
 # 
 
 export build_dx_fn 
-function build_dx_fn(poly_order, z_fd)
+function build_dx_fn(x_vars, n_vars, poly_order, z_fd)
 
     # get # states 
-    n_vars = size( z_fd, 2 ) 
+    # n_vars = size( z_fd, 2 ) 
 
     # define pool_data functions 
     fn_vector = pool_data_vecfn(n_vars, poly_order) 
@@ -228,7 +230,7 @@ function build_dx_fn(poly_order, z_fd)
 
     # create vector of functions, each element --> each state 
     dx_fn_vec = Vector{Function}(undef,0) 
-    for i = 1:n_vars 
+    for i = 1:x_vars 
         # define the differential equation 
         push!( dx_fn_vec, (x,p,t) -> dot( 𝚽( x, fn_vector ), z_fd[:,i] ) ) 
     end 
@@ -238,6 +240,8 @@ function build_dx_fn(poly_order, z_fd)
     return dx_fn 
 
 end 
+
+
 
 
 

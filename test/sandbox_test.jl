@@ -243,3 +243,91 @@ plot!(t, dx_tv, ls = :dash)
 
 ## ============================================ ##
 ## ============================================ ##
+# create GP !!!  
+
+# Random.seed!(0) 
+
+# true hyperparameters 
+σ_f0 = 1.0 ;    σ_f = σ_f0 
+l_0  = 1.0 ;    l   = l_0 
+σ_n0 = 0.001 ;    σ_n = σ_n0 
+
+# generate training data 
+N = 5 
+x_train  = sort( 2π*rand(N) ) 
+y_train  = sin.(x_train) .+ 0.1*randn(N) 
+
+# training data covariance 
+Σ_train  = k_fn( σ_f0, l_0, x_train, x_train )
+Σ_train += σ_n0^2 * I 
+
+# test data points (PRIOR) 
+x_test  = collect( 0 : 0.01 : 8π )
+Σ_test  = k_fn( σ_f0, l_0, x_test, x_test )
+Σ_test += σ_n0^2 * I 
+
+
+# ----------------------- #
+# posterior distribution ROUND 1 (NO hyperparameters tuned yet)
+# (based on training data) 
+
+Kss = k_fn( σ_f0, l_0, x_test, x_test )
+
+# fit data 
+μ_post, Σ_post = post_dist( x_train, y_train, x_test, σ_f0, l_0, σ_n0 )
+
+# get covariances and stds 
+cov_prior = diag(Kss );     std_prior = sqrt.(cov_prior); 
+cov_post  = diag(Σ_post );  std_post  = sqrt.(cov_post); 
+
+## ============================================ ##
+
+# plot fitted / predict / post data 
+p_prior = plot( 
+    x_test, x_test*0 , 
+    ylim = [-3.3,3.3] , 
+    rib = 3*std_prior , 
+    linealpha = 0, 
+    fa = 0.15, 
+    c = :black, 
+    label = "μ ± 3σ ", 
+    legend = false, 
+    xlabel = "x", 
+    ylabel = "f(x)", 
+    grid = false, 
+    tickfontsize = 18, 
+    xticks = 0:3:6, 
+    yticks  = -3:3:3, 
+    xguidefontsize = 18, 
+    yguidefontsize = 18 
+    )
+
+f = gauss_sample(x_test*0, Σ_test) 
+plot!(p_prior, x_test, f, c = :red, lw = 3, linestyle = :dash )
+f = gauss_sample(x_test*0, Σ_test) 
+plot!(p_prior, x_test, f, c = :blue, lw = 3, linestyle = :dashdotdot )
+f = gauss_sample(x_test*0, Σ_test) 
+plot!(p_prior, x_test, f, c = :green, lw = 3 )
+
+## ============================================ ##
+
+# scatter plot of training data 
+p_post = scatter(
+    x_train, y_train, 
+    ylim = [-3.3,3.3], 
+    c = :black, 
+    markersize = 5, 
+    label = "training points", 
+    linealpha = 0, 
+    markershape = :cross, 
+    legend = false, 
+    xlabel = "x", 
+    ylabel = "f(x)", 
+    grid = false,  
+    tickfontsize = 18, 
+    xticks = 0:3:6, 
+    yticks = -3:3:3, 
+    xguidefontsize = 18, 
+    yguidefontsize = 18 
+    )
+plot!(p_post, x_test, μ_post, rib = 3*std_post , lw = 3, fa = 0.15, c = :black, label = "μ ± 3σ ")
