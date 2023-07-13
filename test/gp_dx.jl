@@ -53,7 +53,6 @@ plot!( p_opt, t, dx_true, label = "true", c = :green )
 μ_post, Σ_post, hp = post_dist_hp_opt( x_train, y_train, x_test )
 
 plot!( p_opt, x_test, μ_post, label = "post"  )
-plot!( p_opt, x_test, μ_post2, label = "post2", ls = :dash )
 
 ## ============================================ ##
 # optimize hps 

@@ -186,7 +186,40 @@ function monte_carlo_gpsindy( noise_vec, λ, abstol, reltol )
         Ξ_sindy = SINDy_test( x, dx_fd, λ ) 
     
         # GPSINDy 
-        Ξ_gpsindy, hist_nvars = gpsindy( t, dx_fd, Θx, λ, α, ρ, abstol, reltol )  
+        # Ξ_gpsindy, hist_nvars = gpsindy( t, dx_fd, Θx, λ, α, ρ, abstol, reltol )  
+        # ----------------------- # 
+
+        # loop with state j
+        dx_gp  = 0 * dx_fd 
+        n_vars = size(dx_fd, 2) 
+        for j = 1 : n_vars
+
+            dx = dx_fd[:,j] 
+            println( "dx = ", dx )
+
+            # smooth derivatives 
+            # dx, Σ_post, hp = post_dist_hp_opt( t, dx, t, true )
+            # ----------------------- # 
+            
+            # IC 
+            hp = [ 1.0, 1.0, 0.1 ] 
+
+            # optimization 
+            hp_opt(( σ_f, l, σ_n )) = log_p( σ_f, l, σ_n, t, dx, 0*dx )
+            od       = OnceDifferentiable( hp_opt, hp ; autodiff = :forward ) 
+            result   = optimize( od, hp, LBFGS() ) 
+            hp       = result.minimizer 
+
+            dx, Σ_post = post_dist( t, dx, t, hp[1], hp[2], hp[3] ) 
+            dx_gp[:,j] = dx 
+
+        end 
+        
+        # GPSINDy 
+        Ξ_gpsindy  = SINDy_test( x, dx_gp, λ ) 
+        hist_nvars = 0  
+
+        # ----------------------- # 
 
         # metrics & diagnostics 
         push!( hist_nvars_vec, hist_nvars )

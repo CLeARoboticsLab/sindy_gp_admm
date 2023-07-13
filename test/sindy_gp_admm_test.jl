@@ -2,16 +2,16 @@ using GaussianSINDy
 
 ## ============================================ ##
 
-# noise_vec = [] 
-# noise_vec_iter = 0 : 0.1 : 1.0 
-# for i in noise_vec_iter 
-#     for j = 1:10  
-#         push!(noise_vec, i)
-#     end 
-# end 
+noise_vec = [] 
+noise_vec_iter = 0.1 : 0.1 : 1.0 
+for i in noise_vec_iter 
+    for j = 1:10  
+        push!(noise_vec, i)
+    end 
+end 
 
 # noise_vec = collect( 0 : 0.1 : 0.1 )
-noise_vec = 0.5 
+# noise_vec = 0.5 
 
 λ = 0.1 
 abstol = 1e-2 ; reltol = 1e-2           

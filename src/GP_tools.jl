@@ -182,9 +182,10 @@ function post_dist_hp_opt( x_train, y_train, x_test, plot_option = false )
     μ_post, Σ_post = post_dist( x_train, y_train, x_test, hp[1], hp[2], hp[3] ) 
 
     if plot_option 
-        p = scatter( x_train, y_train, label = "train" )
-        scatter!( p, x_test, μ_post, label = "post", ls = :dash )
+        p = plot( x_train, y_train, label = "train" )
+        plot!( p, x_test, μ_post, label = "post", ls = :dash )
         display(p) 
+
     end 
 
     return μ_post, Σ_post, hp 
