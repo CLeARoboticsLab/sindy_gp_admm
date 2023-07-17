@@ -1,6 +1,7 @@
 using Optim 
 using GaussianProcesses
 using LinearAlgebra 
+using Plots 
 
 ## ============================================ ##
 
@@ -74,7 +75,7 @@ function f_obj( (σ_f, l, σ_n), dx, ξ, Θx )
 
     while det(Ky) == 0 
         println( "det(Ky) = 0" )
-        Ky += σ_n * I 
+        Ky += 0.1 * I 
     end 
     
     # let's say x = inv(Ky)*( dx - Θx*ξ ), or x = inv(A)*b 
@@ -183,6 +184,14 @@ function opt_hp(t_train, dx_train, Θx, ξ)
     hp  = [σ_f, l, σ_n] 
 
     println( "log(hp) opt = ", hp ) 
+    # ----------------------- # 
+    # PLOTTING SANITY CHECK STUFF 
+    plt = plot( gp, label = "gp toolbox" )  
+    plot!( plt, t_train, dx_train, label = "dx_train", c = :green )
+    μ_opt, σ²_opt = predict_y( gp, t_train )
+    plot!( plt, t_train, μ_opt, label = "predict_y", c = :red, ls = :dash, ribbon = ( μ_opt - σ²_opt, μ_opt + σ²_opt ) ) 
+    plot!( legend = :outerright, title = string( "log HPs = ", hp ) ) 
+    display( plt )    
 
     return hp 
 end 

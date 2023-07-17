@@ -57,7 +57,7 @@ display(plt)
 a = Animation()
 
 # toolbox 
-result = optimize!(gp) 
+@time result = optimize!(gp) 
 plt = plot( gp, title = "Gaussian Process (Opt HPs)", label = "gp toolbox", legend = :outerright, size = [800 300] ) 
     frame(a, plt) 
 plot!( plt, t, dx_true, label = "true", c = :green )
@@ -69,7 +69,7 @@ plot!( plt, x_test, μ_opt, label = "gp predict", c = :red, ls = :dash, ribbon =
 # ----------------------- # 
 # hp optimization (June) --> post mean  
 
-μ_post, Σ_post, hp_post = post_dist_hp_opt( x_train, y_train, x_test )
+@time μ_post, Σ_post, hp_post = post_dist_hp_opt( x_train, y_train, x_test )
 σ²_manual = diag( Σ_post ) 
 plot!( plt, x_test, μ_post, label = "manual", c = :cyan, ls = :dashdot, ribbon = ( μ_post - σ²_manual, μ_post + σ²_manual )  )
     frame(a, plt) 
@@ -82,7 +82,7 @@ println( "gp toolbox opt hp = ", exp.( result.minimizer ) )
 println( "manual opt hp     = ", hp_post ) 
 
 ## ============================================ ##
-# optimize hps 
+# try using optimized hps 
 
 result  = optimize!(gp) 
 
@@ -91,19 +91,31 @@ l   = result.minimizer[2]
 σ_n = result.minimizer[3] 
 hp  = [σ_f, l, σ_n] 
 
-## ============================================ ##
-
 # kernel  
 mZero     = MeanZero() ;            # zero mean function 
-kern      = SE( σ_f, l) ;        # squared eponential kernel (hyperparams on log scale) 
-log_noise = log(σ_n) ;              # (optional) log std dev of obs noise 
+kern      = SE( σ_f, l ) ;        # squared eponential kernel (hyperparams on log scale) 
+log_noise = σ_n ;              # (optional) log std dev of obs noise 
 
 # fit GP 
 # y_train = dx_train - Θx*ξ   
-t_train = t 
-y_train = dx_fd[:,1]
-gp      = GP(t_train, y_train, mZero, kern, log_noise) 
+x_train = t 
+y_train = dx_fd
+gp      = GP(x_train, y_train, mZero, kern, log_noise) 
 
-μ_opt, σ²_opt = predict_y( gp, x_test )
-scatter!( x_test, μ_opt, ms = 2 )
+# tests 
+x_test  = t 
+μ, σ²   = predict_y( gp, x_test )
+
+plt = plot(gp; xlabel="x", ylabel="y", title="Gaussian Process (HP opt)", label = "gp toolbox", legend = :outerright, size = [800 300] ) 
+    frame(a, plt) 
+plot!( plt, t, dx_true, label = "true", c = :green ) 
+    frame(a, plt) 
+plot!( plt, x_test, μ, label = "gp predict", c = :red, ls = :dash, ribbon = ( μ - σ², μ + σ² ) )
+    frame(a, plt) 
+
+g = gif(a, fps = 0.75)
+display(g) 
+display(plt) 
+
+
 
