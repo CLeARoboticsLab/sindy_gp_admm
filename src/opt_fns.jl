@@ -2,6 +2,7 @@ using Optim
 using GaussianProcesses
 using LinearAlgebra 
 using Plots 
+using TextWrap 
 
 ## ============================================ ##
 
@@ -183,16 +184,40 @@ function opt_hp(t_train, dx_train, Θx, ξ)
     σ_n = result.minimizer[3] 
     hp  = [σ_f, l, σ_n] 
 
-    println( "log(hp) opt = ", hp ) 
     # ----------------------- # 
     # PLOTTING SANITY CHECK STUFF 
-    plt = plot( gp, label = "gp toolbox" )  
+
+    a = Animation()
+
+    str = string( "log HPs = [ ", round(hp[1], digits = 2), ", ", round(hp[2], digits = 2), ", ", round(hp[3], digits = 2), " ]" ) 
+    plt = plot( gp, label = "gp opt (Θ(x)*ξ)", size = [800 300], legend = :outerright, title = str )  
+        frame(a, plt) 
     plot!( plt, t_train, dx_train, label = "dx_train", c = :green )
+        frame(a, plt) 
     μ_opt, σ²_opt = predict_y( gp, t_train )
     plot!( plt, t_train, μ_opt, label = "predict_y", c = :red, ls = :dash, ribbon = ( μ_opt - σ²_opt, μ_opt + σ²_opt ) ) 
-    plot!( legend = :outerright, title = string( "log HPs = ", hp ) ) 
-    display( plt )    
+        frame(a, plt) 
 
+    # ----------------------- #
+    # use optimized HPs in GP toolbox 
+    # kernel  
+    mZero     = MeanZero() ;            # zero mean function 
+    kern      = SE( σ_f, l ) ;        # squared eponential kernel (hyperparams on log scale) 
+    log_noise = σ_n ;              # (optional) log std dev of obs noise 
+
+    # fit GP 
+    # y_train = dx_train - Θx*ξ   
+    gp      = GP(t_train, y_train, mZero, kern, log_noise) 
+    plot!( plt, gp, label = "gp opt again", color = :blue )
+        frame(a, plt) 
+    μ_opt, σ²_opt = predict_y( gp, t_train )
+    plot!( plt, t_train, μ_opt, label = "predict_y again", c = :orange, ls = :dash, ribbon = ( μ_opt - σ²_opt, μ_opt + σ²_opt ) ) 
+        frame(a, plt) 
+
+    g = gif(a, fps = 0.75) 
+    display(g) 
+    display(plt) 
+        
     return hp 
 end 
 

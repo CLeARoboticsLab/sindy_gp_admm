@@ -2,7 +2,7 @@
 
 julia_version = "1.8.3"
 manifest_format = "2.0"
-project_hash = "1c9b21ef45f5434abec3a6e5b988fdbf163e9472"
+project_hash = "eee23bba3e51a2a9b4579331742071511f701ef0"
 
 [[deps.AMD]]
 deps = ["Libdl", "LinearAlgebra", "SparseArrays", "Test"]
@@ -1750,6 +1750,11 @@ version = "0.1.1"
 [[deps.Test]]
 deps = ["InteractiveUtils", "Logging", "Random", "Serialization"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[[deps.TextWrap]]
+git-tree-sha1 = "9250ef9b01b66667380cf3275b3f7488d0e25faf"
+uuid = "b718987f-49a8-5099-9789-dcd902bef87d"
+version = "1.0.1"
 
 [[deps.ThreadingUtilities]]
 deps = ["ManualMemory"]
