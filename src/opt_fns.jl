@@ -41,7 +41,7 @@ export LU_inv
 function LU_inv( A, b )
 # ----------------------- #
 # A * x = b --> x = A^-1 * b  
-# Use LU factorization instead of matrix inverse 
+# Use Cholesky factorization instead of matrix inverse 
 # ----------------------- #
 
     C = cholesky(A) 
@@ -83,7 +83,7 @@ function f_obj( (σ_f, l, σ_n), dx, ξ, Θx )
     # A       = Ky 
     # b       = ( dx - Θx*ξ ) 
     # x       = LU_inv(A, b) 
-    # objval  = 1/2*( dx - Θx*ξ )'*x
+    # objval  = 1/2*( dx - Θx*ξ )'*x 
 
     objval  = 1/2*( dx - Θx*ξ )'*inv( Ky )*( dx - Θx*ξ ) 
 
@@ -143,7 +143,7 @@ function opt_ξ( aug_L, ξ, z, u, hp )
 # ----------------------- #
 
     # optimization 
-    f_opt(ξ) = aug_L(ξ, exp.(hp), z, u) 
+    f_opt(ξ) = aug_L(ξ, hp, z, u) 
     od       = OnceDifferentiable( f_opt, ξ ; autodiff = :forward ) 
     result   = optimize( od, ξ, LBFGS() ) 
     ξ        = result.minimizer 
@@ -182,7 +182,7 @@ function opt_hp(t_train, dx_train, Θx, ξ)
     σ_f = result.minimizer[1] 
     l   = result.minimizer[2] 
     σ_n = result.minimizer[3] 
-    hp  = [σ_f, l, σ_n] 
+    hp  = exp.( [σ_f, l, σ_n] ) 
 
     # ----------------------- # 
     # PLOTTING SANITY CHECK STUFF 
