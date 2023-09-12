@@ -25,12 +25,14 @@ noise = 0.01
 
 # function sim_ode_test( fn, noise, stand_data_option ) 
 
-    data_train, data_test = ode_train_test( fn, noise, stand_data_option ) 
+    data_train, data_test = ode_train_test( fn, noise ) 
     x_vars, u_vars, poly_order, n_vars = size_x_n_vars( data_train.x_noise, data_train.u ) 
 
     # SINDy vs GPSINDy 
     λ = 0.1 
     
+    # Ξ_true_stls, Ξ_sindy_stls, Ξ_sindy_lasso, Ξ_gpsindy, Ξ_nn_lasso = sindy_gpsindy_nn_Ξ_fn( data_train, λ ) 
+
     # run SINDy on truth data  
     Ξ_true_stls       = sindy_stls( data_train.x_true, data_train.dx_true, λ, data_train.u ) 
     Ξ_true_stls_terms = pretty_coeffs( Ξ_true_stls, data_train.x_true, data_train.u ) 
@@ -46,7 +48,7 @@ noise = 0.01
     end 
 
     # Concanate the two outputs to make a Matrix
-    Ξ_nn_lasso  = sindy_lasso(x_train_noise, dx_noise_nn, λ)
+    Ξ_nn_lasso  = sindy_lasso(data_train.x_noise, dx_noise_nn, λ)
 
     # ----------------------- # 
     # validate 
@@ -77,6 +79,28 @@ noise = 0.01
 ## ============================================ ## 
 
 
+
+function sindy_gpsindy_nn_Ξ_fn( data_train, λ ) 
+
+    # run SINDy on truth data  
+    Ξ_true_stls       = sindy_stls( data_train.x_true, data_train.dx_true, λ, data_train.u ) 
+    Ξ_true_stls_terms = pretty_coeffs( Ξ_true_stls, data_train.x_true, data_train.u ) 
+    
+    # run SINDy (STLS, LASSO) and GPSINDy (LASSO) 
+    Ξ_sindy_stls, Ξ_sindy_lasso, Ξ_gpsindy, Ξ_sindy_stls_terms, Ξ_sindy_lasso_terms, Ξ_gpsindy_terms = gpsindy_Ξ_fn( data_train.t, data_train.x_true, data_train.dx_true, λ, data_train.u ) 
+
+    # Train NN on the data
+    # Define the 2-layer MLP
+    dx_noise_nn = 0 * data_train.dx_noise 
+    for i = 1 : x_vars 
+        dx_noise_nn[:,i] = train_nn_predict(data_train.x_noise, data_train.dx_noise[:, i], 100, 2)
+    end 
+
+    # Concanate the two outputs to make a Matrix
+    Ξ_nn_lasso  = sindy_lasso(data_train.x_noise, dx_noise_nn, λ)
+
+    return Ξ_true_stls, Ξ_sindy_stls, Ξ_sindy_lasso, Ξ_gpsindy, Ξ_nn_lasso 
+end 
 
 
 

@@ -41,7 +41,7 @@ end
 ## ============================================ ##
 
 export ode_train_test 
-function ode_train_test( fn, noise = 0.01, stand_data = false ) 
+function ode_train_test( fn, noise = 0.01 ) 
 
     x0, dt, t, x_true, dx_true, dx_fd, p, u = ode_states(fn, 0, 2) 
 
@@ -65,12 +65,6 @@ function ode_train_test( fn, noise = 0.01, stand_data = false )
 
     data_train = data_struct( t_train, u_train, x_train_true, dx_train_true, x_train_noise, dx_train_noise ) 
     data_test  = data_struct( t_test, u_test, x_test_true, dx_test_true, x_test_noise, dx_test_noise) 
-
-    # standardize data 
-    if stand_data == 1 
-        data_train = ode_stand_data( data_train, fn, p, noise ) 
-        # data_test  = ode_stand_data( data_test, fn, p, noise ) 
-    end 
 
     return data_train, data_test 
 end 
