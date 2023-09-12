@@ -53,67 +53,75 @@ end
 # plot 
 
 export plot_validation_test 
-function plot_validation_test( t_test, x_test, x_unicycle_test, x_sindy_stls, x_gpsindy_stls)  
+function plot_validation_test( t, x_true, x_noise, x_sindy_stls, x_sindy_lasso, x_nn_lasso, x_gpsindy_lasso, noise )  
     
-    xmin, dx, xmax = min_d_max(t_test)
+    xmin, dx, xmax = min_d_max(t)
     
-    x_vars = size(x_test, 2) 
+    x_vars = size(x_true, 2) 
     p_vec = [] 
     for i = 1 : x_vars 
     
-        # ymin, dy, ymax = min_d_max([ x_true_test[:, i]; x_gpsindy_stls[:,i] ])
-        ymin = -10 
-        ymax = 4 
-        dy   = 3 
+        ymin, dy, ymax = min_d_max( x_noise[:, i] )
     
-        p = plot( t_test, x_test[:,i], 
+        p = plot( t, x_true[:,i], 
             c       = :gray, 
-            label   = "test", 
+            label   = "true", 
             legend  = :outerright, 
             xlabel  = "Time (s)", 
             xticks  = xmin:dx:xmax,
             yticks  = ymin:dy:ymax,
             ylim    = (ymin, ymax), 
+            lw      = 4, 
             title   = string(latexify("x_$(i)")),
         ) 
-        plot!( p, t_test, x_unicycle_test[:,i], 
-            c       = :green, 
-            label   = "unicycle", 
+        plot!( p, t, x_noise[:,i], 
+            c       = :red, 
+            label   = "noise", 
             xticks  = xmin:dx:xmax,
             yticks  = ymin:dy:ymax,
+            lw      = 4, 
             ls      = :dash, 
         ) 
-        plot!( p, t_test, x_sindy_stls[:,i], 
-            c       = :red, 
-            label   = "SINDy", 
+        plot!( p, t, x_sindy_stls[:,i], 
+            c       = :blue, 
+            label   = "SINDy (STLS)", 
             xticks  = xmin:dx:xmax,
             yticks  = ymin:dy:ymax,
+            lw      = 4, 
             ls      = :dashdot, 
         ) 
-        plot!( p, t_test, x_gpsindy_stls[:,i], 
-            c       = :blue, 
-            label   = "GPSINDy", 
+        plot!( p, t, x_sindy_lasso[:,i], 
+            c       = :green, 
+            label   = "SINDy (LASSO)", 
+            xticks  = xmin:dx:xmax,
+            yticks  = ymin:dy:ymax,
+            lw      = 3, 
+            ls      = :dashdotdot, 
+        ) 
+        plot!( p, t, x_nn_lasso[:,i], 
+            # c       = :green, 
+            label   = "NN (LASSO)", 
+            xticks  = xmin:dx:xmax,
+            yticks  = ymin:dy:ymax,
+            lw      = 2, 
+            ls      = :dashdotdot, 
+        ) 
+        plot!( p, t, x_gpsindy_lasso[:,i], 
+            # c       = :blue, 
+            label   = "GPSINDy (LASSO)", 
             xticks  = xmin:dx:xmax,
             yticks = ymin:dy:ymax,
+            lw      = 2, 
             ls      = :dot, 
         )
         push!( p_vec, p ) 
     
     end 
     
-    # p = deepcopy( p_vec[end] ) 
-    # plot!( p, 
-    #     legend = ( -0.1, 0.6 ), 
-    #     framestyle = :none, 
-    #     title = "",      
-    # )  
-    # push!( p_vec, p ) 
-    
     pfig = plot(  p_vec ... , 
         layout = grid( x_vars, 1 ), 
         size   = [ 600 x_vars * 400 ],         
-        margin = 5Plots.mm,
-        bottom_margin = 14Plots.mm,
+        plot_title = string( "noise = ", noise ) , 
     )
     
     display(pfig)     
