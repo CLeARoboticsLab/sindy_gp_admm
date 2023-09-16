@@ -150,6 +150,10 @@ function cross_validate_gpsindy( csv_file, plot_option = false )
     # smooth with GPs 
     x_train_GP, dx_train_GP, x_test_GP, dx_test_GP = gp_train_test( data_train, data_test ) 
     
+    # get x0 from data 
+    x0_train = data_train.x_noise[1,:] 
+    x0_test  = data_test.x_noise[1,:] 
+
     # get x0 from smoothed data 
     x0_train_GP = x_train_GP[1,:] 
     x0_test_GP  = x_test_GP[1,:] 
@@ -177,6 +181,7 @@ function cross_validate_gpsindy( csv_file, plot_option = false )
     # Train NN on the data
     # Define the 2-layer MLP
     dx_noise_nn = 0 * data_train.dx_noise 
+    x_vars = size( x_test_GP, 2 ) 
     for i = 1 : x_vars 
         dx_noise_nn[:, i] = train_nn_predict(x_noise, dx_noise_nn[:, i], 100, x_vars)
     end 
