@@ -7,7 +7,7 @@ using LinearAlgebra
 path          = "test/data/jake_car_csvs/" 
 csv_files_vec = readdir( path ) 
 # for i in eachindex(csv_files_vec)  
-for i = [1, 2]
+for i = 1 : 10 
     csv_files_vec[i] = string( path, csv_files_vec[i] ) 
 end
 

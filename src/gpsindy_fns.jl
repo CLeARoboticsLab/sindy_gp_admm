@@ -159,7 +159,9 @@ function cross_validate_gpsindy( csv_file, plot_option = false )
     # Ξ_sindy_stls  = sindy_stls( data_train.x_noise, data_train.dx_noise, λ, false, data_train.u ) 
     # Ξ_sindy_lasso  = sindy_lasso( data_train.x_noise, data_train.dx_noise, λ, data_train.u ) 
 
+    # ----------------------- #
     # cross-validate SINDy!!! 
+
     λ_vec = λ_vec_fn() 
     Ξ_sindy_vec, err_x_sindy, err_dx_sindy = cross_validate_λ( data_train.t, data_train.x_noise, data_train.dx_noise, data_train.u, λ_vec ) 
     
@@ -167,9 +169,30 @@ function cross_validate_gpsindy( csv_file, plot_option = false )
     Ξ_sindy_lasso = Ξ_minerr( Ξ_sindy_vec, err_x_sindy ) 
     
     # build dx_fn from Ξ and integrate 
-    x_train_sindy, x_test_sindy = dx_Ξ_integrate( data_train, data_test, Ξ_sindy_lasso, x0_train_GP, x0_test_GP )
+    x_train_sindy, x_test_sindy = dx_Ξ_integrate( data_train, data_test, Ξ_sindy_lasso, x0_train, x0_test )
     
+    # ----------------------- #
+    # cross-validate NNSINDy!!! 
+
+    # Train NN on the data
+    # Define the 2-layer MLP
+    dx_noise_nn = 0 * data_train.dx_noise 
+    for i = 1 : x_vars 
+        dx_noise_nn[:, i] = train_nn_predict(x_noise, dx_noise_nn[:, i], 100, x_vars)
+    end 
+
+    λ_vec = λ_vec_fn() 
+    Ξ_nn_vec, err_x_nn, err_dx_nn = cross_validate_λ( data_train.t, data_train.x_noise, dx_noise_nn, data_train.u, λ_vec ) 
+    
+    # save ξ with smallest x error  
+    Ξ_nn = Ξ_minerr( Ξ_nn_vec, err_x_nn ) 
+    
+    # build dx_fn from Ξ and integrate 
+    x_train_nn, x_test_nn = dx_Ξ_integrate( data_train, data_test, Ξ_nn, x0_train, x0_test )
+    
+    # ----------------------- #
     # cross-validate GPSINDy!!!  
+
     λ_vec = λ_vec_fn() 
     Ξ_gpsindy_vec, err_x_gpsindy, err_dx_gpsindy = cross_validate_λ( data_train.t, x_train_GP, dx_train_GP, data_train.u, λ_vec ) 
     
@@ -190,7 +213,7 @@ function cross_validate_gpsindy( csv_file, plot_option = false )
 
     end 
 
-    return data_train.t, data_test.t, data_train.x_noise, data_test.x_noise, Ξ_sindy_lasso, x_train_sindy, x_test_sindy, Ξ_gpsindy, x_train_gpsindy, x_test_gpsindy 
+    return data_train.t, data_test.t, data_train.x_noise, data_test.x_noise, Ξ_sindy_lasso, x_train_sindy, x_test_sindy, Ξ_nn, x_train_nn, x_test_nn, Ξ_gpsindy, x_train_gpsindy, x_test_gpsindy 
 end 
 
 
